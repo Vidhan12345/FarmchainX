@@ -1,0 +1,36 @@
+# Development Environment Configuration Template
+# Copy this file to application-dev.properties and update with your local settings
+
+spring.application.name=FarmchainX-Dev
+
+# Database Configuration - Development
+spring.datasource.url=jdbc:mysql://localhost:3306/farmchainx_dev
+spring.datasource.username=farmchainx_user
+spring.datasource.password=your_dev_password
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA Configuration - Development
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.use_sql_comments=true
+
+# Server Configuration - Development
+server.port=8080
+server.error.include-message=always
+server.error.include-binding-errors=always
+
+# JWT Configuration - Development (Use a secure secret in production)
+farmchainx.jwt.secret=YourDevelopmentJWTSecretKeyThatShouldBeAtLeast256BitsLong
+farmchainx.jwt.expiration=86400000
+
+# Logging Configuration - Development
+logging.level.com.vidhan.FarmchainX=DEBUG
+logging.level.org.springframework.security=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+
+# Development specific settings
+spring.h2.console.enabled=false
+spring.sql.init.mode=always

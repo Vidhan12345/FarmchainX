@@ -1,0 +1,53 @@
+# Production Environment Configuration Template
+# Copy this file to application-prod.properties and update with your production settings
+
+spring.application.name=FarmchainX
+
+# Database Configuration - Production
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# Connection Pool Configuration
+spring.datasource.hikari.maximum-pool-size=20
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.idle-timeout=300000
+spring.datasource.hikari.max-lifetime=600000
+
+# JPA Configuration - Production
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.format_sql=false
+spring.jpa.properties.hibernate.jdbc.batch_size=20
+spring.jpa.properties.hibernate.order_inserts=true
+spring.jpa.properties.hibernate.order_updates=true
+
+# Server Configuration - Production
+server.port=${PORT:8080}
+server.error.include-message=never
+server.error.include-binding-errors=never
+server.error.include-stacktrace=never
+
+# JWT Configuration - Production
+farmchainx.jwt.secret=${FARMCHAINX_JWT_SECRET}
+farmchainx.jwt.expiration=86400000
+
+# Logging Configuration - Production
+logging.level.com.vidhan.FarmchainX=INFO
+logging.level.org.springframework.security=WARN
+logging.level.org.hibernate.SQL=WARN
+logging.level.root=WARN
+
+# Production specific settings
+spring.sql.init.mode=never
+
+# Security Headers
+server.servlet.session.cookie.secure=true
+server.servlet.session.cookie.http-only=true
+server.servlet.session.cookie.same-site=strict
+
+# Actuator Configuration (if needed)
+management.endpoints.web.exposure.include=health,info
+management.endpoint.health.show-details=never
