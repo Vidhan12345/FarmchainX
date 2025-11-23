@@ -3,19 +3,12 @@ package com.vidhan.FarmchainX.service;
 import com.vidhan.FarmchainX.dto.LoginRequest;
 import com.vidhan.FarmchainX.dto.LoginResponse;
 import com.vidhan.FarmchainX.dto.SignupRequest;
-import com.vidhan.FarmchainX.entity.ERole;
-import com.vidhan.FarmchainX.entity.Role;
 import com.vidhan.FarmchainX.entity.User;
-import com.vidhan.FarmchainX.repository.RoleRepository;
+import com.vidhan.FarmchainX.entity.UserRole;
 import com.vidhan.FarmchainX.repository.UserRepository;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -24,20 +17,12 @@ public class AuthService {
     private UserRepository userRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
-    
-    @Autowired
     private com.vidhan.FarmchainX.config.JwtUtils jwtUtils;
 
     /**
      * Register new user
      */
-    public String registerUser(SignupRequest signupRequest) {
-        // Check if username already exists
-        if (userRepository.existsByUsername(signupRequest.getUsername())) {
-            throw new RuntimeException("Error: Username is already taken!");
-        }
-
+    public LoginResponse registerUser(SignupRequest signupRequest) {
         // Check if email already exists
         if (userRepository.existsByEmail(signupRequest.getEmail())) {
             throw new RuntimeException("Error: Email is already in use!");
@@ -45,7 +30,7 @@ public class AuthService {
 
         // Create new user
         User user = new User();
-        user.setUsername(signupRequest.getUsername());
+        user.setName(signupRequest.getName());
         user.setEmail(signupRequest.getEmail());
 
         // Hash password using BCrypt
@@ -53,63 +38,61 @@ public class AuthService {
 
         user.setPhone(signupRequest.getPhone());
         user.setAddress(signupRequest.getAddress());
-        user.setCity(signupRequest.getCity());
-        user.setState(signupRequest.getState());
-        user.setPincode(signupRequest.getPincode());
+        user.setCompany(signupRequest.getCompany());
 
-        // Assign roles
-        Set<Role> roles = new HashSet<>();
-        signupRequest.getRoles().forEach(roleName -> {
-            try {
-                ERole eRole = ERole.valueOf("ROLE_" + roleName.toUpperCase());
-                Role role = roleRepository.findByRoleName(eRole)
-                        .orElseThrow(() -> new RuntimeException("Error: Role " + roleName + " not found"));
-                roles.add(role);
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Error: Invalid role name: " + roleName);
-            }
-        });
+        // Parse and set role
+        try {
+            UserRole userRole = UserRole.valueOf(signupRequest.getRole().toUpperCase());
+            user.setRole(userRole);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Error: Invalid role: " + signupRequest.getRole());
+        }
 
-        user.setRoles(roles);
-        userRepository.save(user);
+        user.setVerified(false); // New users are not verified by default
 
-        return "User registered successfully!";
+        User savedUser = userRepository.save(user);
+
+        // Generate JWT token
+        String jwtToken = jwtUtils.generateTokenFromUsername(savedUser.getEmail());
+
+        // Return login response with user info
+        return createLoginResponse(savedUser, jwtToken);
     }
 
     /**
      * Login user
      */
     public LoginResponse loginUser(LoginRequest loginRequest) {
-        // Find user by username
-        User user = userRepository.findByUsername(loginRequest.getUsername())
-                .orElseThrow(() -> new RuntimeException("Error: Invalid username or password"));
-
-        // Check if user is active
-        if (!user.getIsActive()) {
-            throw new RuntimeException("Error: User account is inactive");
-        }
+        // Find user by email
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new RuntimeException("Error: Invalid email or password"));
 
         // Verify password
         if (!BCrypt.checkpw(loginRequest.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Error: Invalid username or password");
+            throw new RuntimeException("Error: Invalid email or password");
         }
 
         // Generate JWT token
-        String jwtToken = jwtUtils.generateTokenFromUsername(user.getUsername());
+        String jwtToken = jwtUtils.generateTokenFromUsername(user.getEmail());
 
-        // Get roles
-        List<String> roles = user.getRoles().stream()
-                .map(role -> role.getRoleName().name())
-                .collect(Collectors.toList());
+        return createLoginResponse(user, jwtToken);
+    }
 
-        return new LoginResponse(
-                jwtToken,
-                "Bearer",
+    /**
+     * Helper method to create LoginResponse
+     */
+    private LoginResponse createLoginResponse(User user, String token) {
+        LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo(
                 user.getId(),
-                user.getUsername(),
+                user.getName(),
                 user.getEmail(),
-                roles,
-                "Login successful!"
-        );
+                user.getRole().name(),
+                user.getProfileImage(),
+                user.getPhone(),
+                user.getAddress(),
+                user.getCompany(),
+                user.getVerified());
+
+        return new LoginResponse(token, userInfo);
     }
 }

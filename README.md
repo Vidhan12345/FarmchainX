@@ -1,265 +1,260 @@
-# FarmChainX 🌾
+# 🌾 FarmChainX - Agricultural Supply Chain Traceability Platform
 
-**AI-Driven Agricultural Traceability Network**
+A comprehensive blockchain-inspired supply chain management system for agricultural products, built with Spring Boot and modern web technologies.
 
-A comprehensive blockchain-inspired traceability system for agricultural supply chains, enabling transparent tracking from farm to consumer with AI-powered insights.
+## 📋 Overview
 
-## 🚀 Features
+FarmChainX is a full-stack application that enables complete traceability of agricultural products from farm to consumer. It provides role-based access for Farmers, Consumers, Distributors, and Retailers, ensuring transparency and trust in the agricultural supply chain.
 
-### Core Functionality
-- **Complete Supply Chain Tracking**: Farm → Distribution → Retail → Consumer
-- **Role-Based Access Control**: Farmer, Distributor, Retailer, Consumer, Admin
-- **Product Journey Visualization**: Real-time tracking of product movement
-- **Quality Assurance**: Audit trails and quality checkpoints
-- **Price Management**: Dynamic pricing across the supply chain
+## ✨ Features
 
-### Advanced Features
-- **AI-Powered Analytics**: Predictive insights and trend analysis
-- **Secure Authentication**: JWT-based security with BCrypt encryption
-- **RESTful API**: Comprehensive API for all stakeholders
-- **Data Integrity**: Immutable audit trails for transparency
-- **Multi-Category Support**: Various agricultural products and practices
+### 🌱 For Farmers
+- **Product Management**: Create, update, and manage agricultural products
+- **Batch Tracking**: Auto-generated unique batch IDs for each product
+- **Status Updates**: Track product lifecycle (Cultivation → Harvested → In Transit → Delivered)
+- **Quality Certification**: Organic certification and quality grading
+- **Image Upload**: Multiple product images support
+- **Real-time Dashboard**: Monitor all products and their status
+
+### 🛒 For Consumers
+- **Product Discovery**: Browse and search products by name, crop type, or keywords
+- **Organic Filter**: Filter products by organic certification
+- **Product Details**: View complete product information including farming practices
+- **Supply Chain Journey**: Track complete product journey from farm to store
+- **QR Code Tracing**: Scan QR codes to verify product authenticity and origin
+- **Farmer Information**: View farmer details and contact information
+
+### 📊 Supply Chain Traceability
+- **Automatic Event Logging**: Harvest, quality checks, and status changes
+- **Blockchain-Ready**: Event structure designed for blockchain integration
+- **Complete History**: Full audit trail of product lifecycle
+- **Timestamp Tracking**: Precise tracking of all supply chain events
 
 ## 🛠️ Technology Stack
 
 ### Backend
 - **Framework**: Spring Boot 3.5.7
-- **Language**: Java 17
-- **Database**: MySQL with JPA/Hibernate
+- **Language**: Java 17+
+- **Database**: MySQL 8.0
+- **ORM**: Hibernate/JPA
 - **Security**: Spring Security with JWT
 - **Build Tool**: Maven
-- **Password Encryption**: BCrypt
 
-### Dependencies
-- Spring Boot Starter Web
-- Spring Boot Starter Data JPA
-- Spring Boot Starter Security
-- Spring Boot Starter Validation
+### Key Dependencies
+- Spring Data JPA
+- Spring Web
+- Spring Security
 - MySQL Connector
 - Lombok
-- BCrypt
+- JWT (JSON Web Tokens)
+- BCrypt Password Encoder
 
-## 📋 Prerequisites
+## 📁 Project Structure
 
+```
+FarmchainX/
+├── src/
+│   ├── main/
+│   │   ├── java/com/vidhan/FarmchainX/
+│   │   │   ├── config/          # Security & JWT configuration
+│   │   │   ├── controller/      # REST API endpoints
+│   │   │   ├── dto/             # Data Transfer Objects
+│   │   │   ├── entity/          # JPA Entities
+│   │   │   ├── repository/      # Database repositories
+│   │   │   ├── service/         # Business logic
+│   │   │   └── util/            # Utility classes
+│   │   └── resources/
+│   │       └── application.properties
+│   └── test/
+├── API_REFERENCE.md             # Complete API documentation
+├── POSTMAN_TESTING_GUIDE.md     # Testing guide with examples
+└── README.md
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
 - Java 17 or higher
 - Maven 3.6+
 - MySQL 8.0+
-- IDE (IntelliJ IDEA, Eclipse, or VS Code)
+- Git
 
-## 🔧 Installation & Setup
+### Installation
 
-### 1. Clone the Repository
+1. **Clone the repository**
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/yourusername/FarmchainX.git
 cd FarmchainX
 ```
 
-### 2. Database Setup
+2. **Configure Database**
+
+Create a MySQL database:
 ```sql
-CREATE DATABASE farmchainx;
-CREATE USER 'farmchainx_user'@'localhost' IDENTIFIED BY 'your_password';
-GRANT ALL PRIVILEGES ON farmchainx.* TO 'farmchainx_user'@'localhost';
-FLUSH PRIVILEGES;
+CREATE DATABASE farmchainx_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-### 3. Configure Application Properties
-Create `src/main/resources/application.properties`:
+Update `src/main/resources/application.properties`:
 ```properties
-# Database Configuration
-spring.datasource.url=jdbc:mysql://localhost:3306/farmchainx
-spring.datasource.username=farmchainx_user
+spring.datasource.url=jdbc:mysql://localhost:3306/farmchainx_db
+spring.datasource.username=your_username
 spring.datasource.password=your_password
-
-# JPA Configuration
 spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
-
-# Server Configuration
-server.port=8080
-
-# JWT Configuration
-app.jwt.secret=your-jwt-secret-key
-app.jwt.expiration=86400000
 ```
 
-### 4. Build and Run
+3. **Build the project**
 ```bash
-# Using Maven Wrapper
-./mvnw clean install
-./mvnw spring-boot:run
-
-# Or using Maven directly
 mvn clean install
+```
+
+4. **Run the application**
+```bash
 mvn spring-boot:run
 ```
 
-## 🏗️ Project Structure
+The application will start on `http://localhost:8080`
 
-```
-src/
-├── main/
-│   ├── java/com/vidhan/FarmchainX/
-│   │   ├── config/          # Security and configuration
-│   │   ├── controller/      # REST API endpoints
-│   │   ├── dto/            # Data Transfer Objects
-│   │   ├── entity/         # JPA Entities
-│   │   ├── repository/     # Data Access Layer
-│   │   ├── service/        # Business Logic
-│   │   └── FarmchainXApplication.java
-│   └── resources/
-│       ├── application.properties
-│       └── static/
-└── test/                   # Unit and Integration Tests
-```
-
-## 🔐 API Endpoints
+## 📡 API Endpoints
 
 ### Authentication
-- `POST /api/auth/signup` - User registration
-- `POST /api/auth/signin` - User login
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
 
-### Farmer Operations
-- `POST /api/farmer/products` - Add new product
-- `GET /api/farmer/products` - Get farmer's products
+### Farmer Endpoints
+- `POST /api/farmer/products` - Create product
+- `GET /api/farmer/products` - Get all farmer's products
+- `GET /api/farmer/products/{id}` - Get product by ID
 - `PUT /api/farmer/products/{id}` - Update product
-- `POST /api/farmer/products/{id}/transfer` - Transfer to distributor
+- `PUT /api/farmer/products/{id}/status` - Update product status
+- `POST /api/farmer/products/{id}/images` - Add product images
+- `DELETE /api/farmer/products/{id}` - Delete product
 
-### Distributor Operations
-- `GET /api/distributor/products` - Get received products
-- `POST /api/distributor/products/{id}/transfer` - Transfer to retailer
-- `PUT /api/distributor/products/{id}/audit` - Add audit information
+### Consumer Endpoints
+- `GET /api/consumer/products` - Browse all products (with filters)
+- `GET /api/consumer/products/{id}` - Get product details
+- `GET /api/consumer/products/{id}/journey` - Get product journey
+- `GET /api/consumer/trace/{batchId}` - Trace by QR code
 
-### Retailer Operations
-- `GET /api/retailer/products` - Get inventory
-- `POST /api/retailer/products/{id}/sale` - Record sale
-- `PUT /api/retailer/products/{id}/price` - Update price
-
-### Consumer Operations
-- `GET /api/consumer/products/search` - Search products
-- `GET /api/consumer/products/{id}/journey` - View product journey
-
-### Admin Operations
-- `GET /api/admin/stats` - System statistics
-- `GET /api/admin/users` - User management
-- `POST /api/admin/users` - Create user accounts
-
-## 👥 User Roles
-
-### 🌱 Farmer
-- Add products with farming details
-- Transfer products to distributors
-- Track product status and journey
-
-### 🚛 Distributor
-- Receive products from farmers
-- Add quality audit information
-- Transfer products to retailers
-
-### 🏪 Retailer
-- Manage inventory from distributors
-- Set retail prices
-- Record consumer sales
-
-### 👤 Consumer
-- Search available products
-- View complete product journey
-- Access transparency information
-
-### 🔧 Admin
-- System oversight and statistics
-- User management
-- Data integrity monitoring
-
-## 🌟 Key Features Explained
-
-### Product Journey Tracking
-Every product maintains a complete audit trail from creation to final sale, including:
-- Farming practices and location
-- Quality checkpoints
-- Price changes
-- Ownership transfers
-- Timestamps and locations
-
-### Security Features
-- JWT-based authentication
-- Role-based access control
-- Password encryption with BCrypt
-- Secure API endpoints
-
-### Data Integrity
-- Immutable audit trails
-- Comprehensive logging
-- Validation at every step
-- Error handling and recovery
+For complete API documentation, see [API_REFERENCE.md](API_REFERENCE.md)
 
 ## 🧪 Testing
 
-```bash
-# Run all tests
-./mvnw test
+### Using Postman
 
-# Run specific test class
-./mvnw test -Dtest=FarmchainXApplicationTests
+1. Import the Postman collection (see [POSTMAN_TESTING_GUIDE.md](POSTMAN_TESTING_GUIDE.md))
+2. Set base URL: `http://localhost:8080`
+3. Follow the testing guide for step-by-step testing
+
+### Sample Test Flow
+
+1. **Register a Farmer**
+```json
+POST /api/auth/register
+{
+  "name": "Ramesh Kumar",
+  "email": "ramesh@farm.com",
+  "password": "farmer123",
+  "role": "FARMER",
+  "phone": "+91-9876543210",
+  "address": "Village Rampur, Meerut, UP"
+}
 ```
 
-## 📚 Development Guidelines
-
-### Code Style
-- Follow Java naming conventions
-- Use Lombok for boilerplate code
-- Implement proper error handling
-- Write comprehensive tests
-
-### Database Design
-- Use appropriate JPA annotations
-- Implement proper relationships
-- Consider performance implications
-- Maintain data consistency
-
-## 🚀 Deployment
-
-### Development
-```bash
-./mvnw spring-boot:run -Dspring.profiles.active=dev
+2. **Create a Product**
+```json
+POST /api/farmer/products
+Headers: User-Id: {farmer-id}
+{
+  "productName": "Organic Tomatoes",
+  "cropType": "Vegetables",
+  "quantity": 500,
+  "price": 80.0,
+  "unit": "kg",
+  "organic": true,
+  "harvestDate": "2024-12-20"
+}
 ```
 
-### Production
-```bash
-./mvnw clean package
-java -jar target/FarmchainX-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
+3. **View Product Journey**
 ```
+GET /api/consumer/products/{product-id}/journey
+```
+
+## 🔐 Security
+
+- **JWT Authentication**: Secure token-based authentication
+- **Password Encryption**: BCrypt password hashing
+- **Role-Based Access**: Different permissions for different user roles
+- **CORS Enabled**: Configured for frontend integration
+
+## 🌟 Key Features Implementation
+
+### Automatic Event Creation
+- **Harvest Event**: Created automatically when product is added
+- **Quality Check**: Auto-generated for organic products
+- **Status Changes**: Tracked automatically on status updates
+
+### Smart Search
+- Searches both product name and crop type
+- Case-insensitive search
+- Combined results without duplicates
+
+### Organic Filtering
+- Boolean-based filtering (true/false)
+- Compatible with database bit/tinyint storage
+
+## 📊 Database Schema
+
+### Main Entities
+- **User**: Farmers, Consumers, Distributors, Retailers
+- **Product**: Agricultural products with complete details
+- **SupplyChainEvent**: Traceability events
+- **Order**: Consumer orders
+- **OrderItem**: Individual order items
+- **Inventory**: Stock management
+- **Notification**: User notifications
+- **Review**: Product reviews
+- **Advisory**: Farmer advisory system
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+Contributions are welcome! Please follow these steps:
 
-## 📄 License
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## 👥 Authors
+
+- **Vidhan** - Initial work
+
+## 🙏 Acknowledgments
+
+- Spring Boot team for the excellent framework
+- MySQL for reliable database management
+- All contributors and testers
+
 ## 📞 Support
 
-For support and questions:
-- Create an issue in the repository
-- Contact the development team
-- Check the documentation
+For support, email your-email@example.com or open an issue in the GitHub repository.
 
 ## 🔮 Future Enhancements
 
-- Blockchain integration for immutable records
-- IoT sensor integration
-- Mobile application
-- Advanced analytics dashboard
-- Multi-language support
-- API rate limiting
-- Caching mechanisms
-- Microservices architecture
+- [ ] Blockchain integration for immutable records
+- [ ] IoT sensor integration for real-time monitoring
+- [ ] Mobile application (Android/iOS)
+- [ ] Advanced analytics dashboard
+- [ ] Multi-language support
+- [ ] Payment gateway integration
+- [ ] AI-based quality prediction
+- [ ] Weather integration for farming insights
 
 ---
 
-**FarmChainX** - Bringing transparency and trust to agricultural supply chains through technology.
+**Made with ❤️ for sustainable agriculture and transparent supply chains**

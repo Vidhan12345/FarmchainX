@@ -2,8 +2,7 @@ package com.vidhan.FarmchainX.controller;
 
 import com.vidhan.FarmchainX.dto.MessageResponse;
 import com.vidhan.FarmchainX.dto.ProductRequest;
-import com.vidhan.FarmchainX.dto.ProductResponse;
-import com.vidhan.FarmchainX.dto.ProductUpdateRequest;
+import com.vidhan.FarmchainX.entity.Product;
 import com.vidhan.FarmchainX.entity.ProductStatus;
 import com.vidhan.FarmchainX.service.ProductService;
 import jakarta.validation.Valid;
@@ -23,16 +22,16 @@ public class FarmerController {
     private ProductService productService;
 
     /**
-     * Register a new product
+     * Create a new product
      * POST /api/farmer/products
      */
     @PostMapping("/products")
-    public ResponseEntity<?> registerProduct(
+    public ResponseEntity<?> createProduct(
             @Valid @RequestBody ProductRequest request,
-            @RequestHeader("User-Id") Long userId) {
+            @RequestHeader("User-Id") String userId) {
         try {
-            ProductResponse response = productService.registerProduct(request, userId);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            Product product = productService.createProduct(request, userId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(product);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
@@ -43,12 +42,12 @@ public class FarmerController {
      * GET /api/farmer/products
      */
     @GetMapping("/products")
-    public ResponseEntity<?> getFarmerProducts(@RequestHeader("User-Id") Long userId) {
+    public ResponseEntity<?> getFarmerProducts(@RequestHeader("User-Id") String userId) {
         try {
-            List<ProductResponse> products = productService.getFarmerProducts(userId);
+            List<Product> products = productService.getProductsByFarmer(userId);
             return ResponseEntity.ok(products);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse());
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 
@@ -57,133 +56,108 @@ public class FarmerController {
      * GET /api/farmer/products/{id}
      */
     @GetMapping("/products/{id}")
-    public ResponseEntity<?> getProductById(@PathVariable Long id) {
+    public ResponseEntity<?> getProductById(@PathVariable String id) {
         try {
-            ProductResponse product = productService.getProductById(id);
+            Product product = productService.getProductById(id);
             return ResponseEntity.ok(product);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new MessageResponse());
+                    .body(new MessageResponse("Product not found"));
         }
     }
 
     /**
-     * Full update product (requires all fields)
+     * Update product
      * PUT /api/farmer/products/{id}
      */
     @PutMapping("/products/{id}")
     public ResponseEntity<?> updateProduct(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody ProductRequest request,
-            @RequestHeader("User-Id") Long userId) {
+            @RequestHeader("User-Id") String userId) {
         try {
-            ProductResponse response = productService.updateProduct(id, request, userId);
-            return ResponseEntity.ok(response);
+            Product product = productService.updateProduct(id, request, userId);
+            return ResponseEntity.ok(product);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 
     /**
-     * Partial update product (only updates provided fields)
-     * PATCH /api/farmer/products/{id}
-     */
-    @PatchMapping("/products/{id}")
-    public ResponseEntity<?> partialUpdateProduct(
-            @PathVariable Long id,
-            @Valid @RequestBody ProductUpdateRequest request,
-            @RequestHeader("User-Id") Long userId) {
-        try {
-            ProductResponse response = productService.partialUpdateProduct(id, request, userId);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
-    }
-
-    /**
-     * Update product status (e.g., mark as harvested)
+     * Update product status
      * PUT /api/farmer/products/{id}/status
      */
     @PutMapping("/products/{id}/status")
     public ResponseEntity<?> updateProductStatus(
-            @PathVariable Long id,
-            @RequestParam ProductStatus status,
-            @RequestHeader("User-Id") Long userId) {
+            @PathVariable String id,
+            @RequestBody StatusUpdateRequest request,
+            @RequestHeader("User-Id") String userId) {
         try {
-            ProductResponse response = productService.updateProductStatus(id, status, userId);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse());
-        }
-    }
-
-    /**
-     * Delete product (soft delete by default, hard delete with ?permanent=true)
-     * DELETE /api/farmer/products/{id}
-     * DELETE /api/farmer/products/{id}?permanent=true (permanent deletion)
-     */
-    @DeleteMapping("/products/{id}")
-    public ResponseEntity<?> deleteProduct(
-            @PathVariable Long id,
-            @RequestHeader("User-Id") Long userId,
-            @RequestParam(value = "permanent", defaultValue = "false") boolean permanent) {
-        try {
-            if (permanent) {
-                productService.permanentlyDeleteProduct(id, userId);
-                return ResponseEntity.ok(new MessageResponse("Product permanently deleted from database"));
-            } else {
-                productService.deleteProduct(id, userId);
-                return ResponseEntity.ok(new MessageResponse("Product deleted successfully"));
-            }
+            ProductStatus status = ProductStatus.valueOf(request.getStatus().toUpperCase());
+            Product product = productService.updateProductStatus(id, status, userId);
+            return ResponseEntity.ok(product);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Invalid status: " + request.getStatus()));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 
     /**
-     * Get farmer dashboard with statistics
-     * GET /api/farmer/dashboard
+     * Delete product
+     * DELETE /api/farmer/products/{id}
      */
-    @GetMapping("/dashboard")
-    public ResponseEntity<?> getFarmerDashboard(@RequestHeader("User-Id") Long userId) {
+    @DeleteMapping("/products/{id}")
+    public ResponseEntity<?> deleteProduct(
+            @PathVariable String id,
+            @RequestHeader("User-Id") String userId) {
         try {
-            ProductService.FarmerDashboardResponse dashboard = productService.getFarmerDashboard(userId);
-            return ResponseEntity.ok(dashboard);
+            productService.deleteProduct(id, userId);
+            return ResponseEntity.ok(new MessageResponse("Product deleted successfully"));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse());
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 
     /**
-     * Record harvest details
-     * POST /api/farmer/products/{id}/harvest
+     * Add images to product
+     * POST /api/farmer/products/{id}/images
      */
-    @PostMapping("/products/{id}/harvest")
-    public ResponseEntity<?> recordHarvest(
-            @PathVariable Long id,
-            @RequestHeader("User-Id") Long userId) {
+    @PostMapping("/products/{id}/images")
+    public ResponseEntity<?> addProductImages(
+            @PathVariable String id,
+            @RequestBody ImageUploadRequest request,
+            @RequestHeader("User-Id") String userId) {
         try {
-            ProductResponse response = productService.updateProductStatus(id, ProductStatus.HARVESTED, userId);
-            return ResponseEntity.ok(response);
+            Product product = productService.addProductImages(id, request.getImages(), userId);
+            return ResponseEntity.ok(product);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse());
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 
-    /**
-     * Add quality check
-     * POST /api/farmer/products/{id}/quality-check
-     */
-    @PostMapping("/products/{id}/quality-check")
-    public ResponseEntity<?> addQualityCheck(
-            @PathVariable Long id,
-            @RequestHeader("User-Id") Long userId) {
-        try {
-            ProductResponse response = productService.updateProductStatus(id, ProductStatus.QUALITY_CHECKED, userId);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse());
+    // Helper DTOs
+    public static class StatusUpdateRequest {
+        private String status;
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
+    }
+
+    public static class ImageUploadRequest {
+        private List<String> images;
+
+        public List<String> getImages() {
+            return images;
+        }
+
+        public void setImages(List<String> images) {
+            this.images = images;
         }
     }
 }

@@ -20,13 +20,13 @@ public class AuthController {
     private AuthService authService;
 
     /**
-     * User Registration
+     * User Registration - Frontend expects /register endpoint
      */
-    @PostMapping("/signup")
+    @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
         try {
-            String message = authService.registerUser(signupRequest);
-            return ResponseEntity.ok(new MessageResponse(message));
+            LoginResponse response = authService.registerUser(signupRequest);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }

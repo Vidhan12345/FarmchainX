@@ -1,48 +1,46 @@
 package com.vidhan.FarmchainX.repository;
 
 import com.vidhan.FarmchainX.entity.Product;
-import com.vidhan.FarmchainX.entity.ProductCategory;
 import com.vidhan.FarmchainX.entity.ProductStatus;
-import com.vidhan.FarmchainX.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    
-    // Find by farmer
-    List<Product> findByFarmer(User farmer);
-    List<Product> findByFarmerAndIsActive(User farmer, Boolean isActive);
-    
-    // Find by current owner
-    List<Product> findByCurrentOwner(User owner);
-    List<Product> findByCurrentOwnerId(Long currentOwnerId);
-    List<Product> findByCurrentOwnerIdAndIsActive(Long currentOwnerId, Boolean isActive);
-    
+public interface ProductRepository extends JpaRepository<Product, String> {
+
+    // Find by farmer ID
+    @Query("SELECT p FROM Product p WHERE p.farmer.id = :farmerId")
+    List<Product> findByFarmerId(@Param("farmerId") String farmerId);
+
     // Find by status
     List<Product> findByStatus(ProductStatus status);
+
     List<Product> findByStatusIn(List<ProductStatus> statuses);
-    
-    // Find by category
-    List<Product> findByCategory(ProductCategory category);
-    
-    // Find by QR code or batch number
-    Optional<Product> findByQrCode(String qrCode);
-    Optional<Product> findByBatchNumber(String batchNumber);
-    
-    // Find available products for purchase
-    List<Product> findByStatusAndIsActive(ProductStatus status, Boolean isActive);
-    
-    // Find by active status
-    List<Product> findByIsActive(Boolean isActive);
-    
+
+    // Find by batch ID
+    Optional<Product> findByBatchId(String batchId);
+
+    // Search by crop type
+    List<Product> findByCropTypeContainingIgnoreCase(String cropType);
+
+    // Search by product name
+    List<Product> findByProductNameContainingIgnoreCase(String productName);
+
+    // Find organic products
+    List<Product> findByOrganic(Boolean organic);
+
+    // Find by status and organic
+    List<Product> findByStatusAndOrganic(ProductStatus status, Boolean organic);
+
     // Count products by farmer
-    Long countByFarmer(User farmer);
-    
-    // Count by current owner and status
-    Long countByCurrentOwnerIdAndStatus(Long currentOwnerId, ProductStatus status);
-    Long countByCurrentOwnerIdAndIsActive(Long currentOwnerId, Boolean isActive);
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.farmer.id = :farmerId")
+    Long countByFarmerId(@Param("farmerId") String farmerId);
+
+    // Count by status
+    Long countByStatus(ProductStatus status);
 }

@@ -1,6 +1,5 @@
 package com.vidhan.FarmchainX.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,40 +7,44 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-public class User {
+public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false)
     private String id;
 
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "consumer_id", nullable = false)
+    private User consumer;
 
-    @Column(unique = true, nullable = false, length = 100)
-    private String email;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items = new ArrayList<>();
 
     @Column(nullable = false)
-    private String password;
+    private Double total;
+
+    @Column(nullable = false)
+    private LocalDateTime orderDate; // NOT createdAt
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role;
+    private OrderStatus status = OrderStatus.PENDING;
 
-    private String profileImage;
-    private String phone;
-    private String address;
-    private String company; // For distributor/retailer
-
-    @Column(nullable = false)
-    private Boolean verified = false;
+    private LocalDate deliveryDate;
+    private String deliveryAddress;
+    private String paymentMethod; // "UPI", "CARD", "COD"
+    private String paymentStatus; // "PENDING", "COMPLETED", "FAILED"
+    private String trackingNumber;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)

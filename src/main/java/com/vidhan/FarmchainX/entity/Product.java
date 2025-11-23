@@ -1,5 +1,6 @@
 package com.vidhan.FarmchainX.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,112 +8,94 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
+    private String id;
 
-    @Column(nullable = false)
-    private String name;
+    @Column(nullable = false, unique = true)
+    private String batchId; // Auto-generated: BATCH-YYYYMMDD-RANDOM
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ProductCategory category;
-
-    private String variety;
-
-    @Column(length = 1000)
-    private String description;
-
-    // Farmer Information
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farmer_id", nullable = false)
     private User farmer;
 
-    // Harvest Details
+    // Basic Product Info
+    @Column(nullable = false)
+    private String productName;
+
+    @Column(nullable = false)
+    private String cropType;
+
+    private String seedType;
+    private String soilType;
+    private String irrigation;
+    private String fertilizers;
+    private String pesticides;
+
+    @Column(nullable = false)
+    private Integer quantity; // in kg or units
+
+    private String quality; // A+, A, B, C
+
+    // Dates
+    @Column(nullable = false)
+    private LocalDate cultivationStart;
+
+    @Column(nullable = false)
+    private LocalDate cultivationEnd;
+
+    @Column(nullable = false)
     private LocalDate harvestDate;
 
-    @Column(nullable = false)
-    private BigDecimal quantity;
-
-    @Column(nullable = false)
-    private String unit; // kg, tons, liters, etc.
-
-    // Location
-    private String farmLocation;
-    private String farmAddress;
-    private String city;
-    private String state;
-    private String pincode;
-    
-    @Column(name = "latitude")
-    private Double latitude;
-    
-    @Column(name = "longitude")
-    private Double longitude;
-
-    // Farming Details
-    @Enumerated(EnumType.STRING)
-    private FarmingPractice farmingPractice;
-
-    private String certifications; // Comma-separated certifications
-
-    // Quality Metrics
-    private String qualityGrade; // A, B, C, etc.
-    private String size; // Small, Medium, Large
-    
-    @Column(length = 1000)
-    private String qualityNotes;
-
-    // Status & Tracking
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ProductStatus status = ProductStatus.REGISTERED;
-
-    @Column(unique = true)
-    private String batchNumber;
-
-    @Column(unique = true)
-    private String qrCode;
-
-    // Pricing
-    private BigDecimal farmerPrice; // Price set by farmer
-    private BigDecimal currentPrice; // Current market price
-
-    // Current Owner (for relationship)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "current_owner_id", insertable = false, updatable = false)
-    private User currentOwner;
-    
-    // Current Owner fields (for direct access)
-    @Column(name = "current_owner_id")
-    private Long currentOwnerId;
-    
-    @Column(name = "current_owner_name")
-    private String currentOwnerName;
+    // Storage Info
+    private Integer shelfLife; // in days
+    private Integer expiryDays; // auto-calculated
+    private String storage; // "Cold Storage", "Room Temperature"
+    private Double storageTemp; // in Celsius
 
     // Images
-    private String imageUrl;
-    private String certificateUrl;
+    private String image; // Primary image URL
 
-    // Metadata
-    @Column(name = "is_active")
-    private Boolean isActive = true;
+    @ElementCollection
+    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_url")
+    private List<String> images = new ArrayList<>(); // Multiple image URLs
 
+    // Metadata (CRITICAL: Frontend expects createdOn/updatedOn, NOT
+    // createdAt/updatedAt)
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_on", updatable = false, nullable = false)
+    private LocalDateTime createdOn;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Column(name = "updated_on", nullable = false)
+    private LocalDateTime updatedOn;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProductStatus status = ProductStatus.CULTIVATION;
+
+    private Boolean qrVerified = false;
+
+    // Additional fields
+    @Column(length = 2000)
+    private String description;
+
+    private Double price; // Price per unit
+    private String unit; // "kg", "liters", "pieces"
+    private Boolean organic = false;
+    private String certifications;
 }

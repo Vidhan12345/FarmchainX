@@ -1,22 +1,20 @@
 package com.vidhan.FarmchainX.controller;
 
 import com.vidhan.FarmchainX.dto.MessageResponse;
-import com.vidhan.FarmchainX.dto.ProductJourneyResponse;
-import com.vidhan.FarmchainX.dto.ProductResponse;
-import com.vidhan.FarmchainX.entity.ProductCategory;
+import com.vidhan.FarmchainX.entity.Product;
 import com.vidhan.FarmchainX.entity.ProductStatus;
+import com.vidhan.FarmchainX.entity.SupplyChainEvent;
+import com.vidhan.FarmchainX.repository.SupplyChainEventRepository;
 import com.vidhan.FarmchainX.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
- * REST Controller for Consumer operations
- * Base URL: /api/consumer
- * Public endpoints - no authentication required
- */
 @RestController
 @RequestMapping("/api/consumer")
 @CrossOrigin(origins = "*")
@@ -25,14 +23,42 @@ public class ConsumerController {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private SupplyChainEventRepository supplyChainEventRepository;
+
     /**
-     * View all products
+     * Get all available products
      * GET /api/consumer/products
      */
     @GetMapping("/products")
-    public ResponseEntity<?> getAllProducts() {
+    public ResponseEntity<?> getAllProducts(
+            @RequestParam(required = false) String cropType,
+            @RequestParam(required = false) Boolean organic,
+            @RequestParam(required = false) String search) {
         try {
-            List<ProductResponse> products = productService.getAllProducts();
+            List<Product> products;
+
+            if (search != null && !search.isEmpty()) {
+                // Search in both product name and crop type
+                List<Product> byName = productService.searchProductsByName(search);
+                List<Product> byCrop = productService.searchProductsByCropType(search);
+
+                // Combine and remove duplicates
+                products = new java.util.ArrayList<>(byName);
+                byCrop.forEach(p -> {
+                    if (!products.stream().anyMatch(existing -> existing.getId().equals(p.getId()))) {
+                        products.add(p);
+                    }
+                });
+            } else if (cropType != null && !cropType.isEmpty()) {
+                products = productService.searchProductsByCropType(cropType);
+            } else if (organic != null) {
+                // Use repository method for organic filter
+                products = productService.getOrganicProducts(organic);
+            } else {
+                products = productService.getAllProducts();
+            }
+
             return ResponseEntity.ok(products);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
@@ -40,47 +66,64 @@ public class ConsumerController {
     }
 
     /**
-     * Get product details with complete journey/traceability
+     * Get product by ID
      * GET /api/consumer/products/{id}
      */
     @GetMapping("/products/{id}")
-    public ResponseEntity<?> getProductWithJourney(@PathVariable Long id) {
+    public ResponseEntity<?> getProductById(@PathVariable String id) {
         try {
-            ProductJourneyResponse journey = productService.getProductWithJourney(id);
-            return ResponseEntity.ok(journey);
+            Product product = productService.getProductById(id);
+            return ResponseEntity.ok(product);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("Product not found"));
         }
     }
 
     /**
-     * Get product by QR code
-     * GET /api/consumer/products/qr/{qrCode}
+     * Get product journey/traceability
+     * GET /api/consumer/products/{id}/journey
      */
-    @GetMapping("/products/qr/{qrCode}")
-    public ResponseEntity<?> getProductByQrCode(@PathVariable String qrCode) {
+    @GetMapping("/products/{id}/journey")
+    public ResponseEntity<?> getProductJourney(@PathVariable String id) {
         try {
-            ProductJourneyResponse journey = productService.getProductByQrCode(qrCode);
-            return ResponseEntity.ok(journey);
+            Product product = productService.getProductById(id);
+            List<SupplyChainEvent> events = supplyChainEventRepository
+                    .findByProductIdOrderByTimestampDesc(id);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("productId", product.getId());
+            response.put("batchId", product.getBatchId());
+            response.put("productName", product.getProductName());
+            response.put("events", events);
+
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("Product not found"));
         }
     }
 
     /**
-     * Search products with filters
-     * GET /api/consumer/products/search?name=tomato&category=VEGETABLES&city=Mumbai
+     * Search products by batch ID (QR code scan)
+     * GET /api/consumer/trace/{batchId}
      */
-    @GetMapping("/products/search")
-    public ResponseEntity<?> searchProducts(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) ProductCategory category,
-            @RequestParam(required = false) ProductStatus status,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String state) {
+    @GetMapping("/trace/{batchId}")
+    public ResponseEntity<?> traceByBatchId(@PathVariable String batchId) {
         try {
-            List<ProductResponse> products = productService.searchProducts(name, category, status, city, state);
-            return ResponseEntity.ok(products);
+            List<SupplyChainEvent> events = supplyChainEventRepository
+                    .findByProductBatchIdOrderByTimestampDesc(batchId);
+
+            if (events.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new MessageResponse("No product found with this batch ID"));
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("batchId", batchId);
+            response.put("events", events);
+
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }

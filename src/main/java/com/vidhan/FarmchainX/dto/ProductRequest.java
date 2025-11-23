@@ -1,59 +1,55 @@
 package com.vidhan.FarmchainX.dto;
 
-import com.vidhan.FarmchainX.entity.FarmingPractice;
-import com.vidhan.FarmchainX.entity.ProductCategory;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductRequest {
-    
+
     @NotBlank(message = "Product name is required")
-    @Size(min = 3, max = 100, message = "Product name must be between 3 and 100 characters")
-    private String name;
+    private String productName;
 
-    @NotNull(message = "Category is required")
-    private ProductCategory category;
+    @NotBlank(message = "Crop type is required")
+    private String cropType;
 
-    private String variety;
-
-    @Size(max = 1000, message = "Description cannot exceed 1000 characters")
-    private String description;
-
-    private LocalDate harvestDate;
+    private String seedType;
+    private String soilType;
+    private String irrigation;
+    private String fertilizers;
+    private String pesticides;
 
     @NotNull(message = "Quantity is required")
-    @DecimalMin(value = "0.01", message = "Quantity must be greater than 0")
-    private BigDecimal quantity;
+    @Min(value = 1, message = "Quantity must be at least 1")
+    private Integer quantity;
 
-    @NotBlank(message = "Unit is required")
-    private String unit;
+    private String quality; // A+, A, B, C
 
-    private String farmLocation;
-    private String farmAddress;
-    private String city;
-    private String state;
-    private String pincode;
-    private Double latitude;
-    private Double longitude;
+    @NotNull(message = "Cultivation start date is required")
+    private LocalDate cultivationStart;
 
-    private FarmingPractice farmingPractice;
+    @NotNull(message = "Cultivation end date is required")
+    private LocalDate cultivationEnd;
+
+    @NotNull(message = "Harvest date is required")
+    private LocalDate harvestDate;
+
+    private Integer shelfLife; // in days
+    private String storage; // "Cold Storage", "Room Temperature"
+    private Double storageTemp; // in Celsius
+
+    @Size(max = 2000, message = "Description cannot exceed 2000 characters")
+    private String description;
+
+    @Min(value = 0, message = "Price must be positive")
+    private Double price;
+
+    private String unit; // "kg", "liters", "pieces"
+    private Boolean organic = false;
     private String certifications;
-
-    private String qualityGrade;
-    private String size;
-    private String qualityNotes;
-
-    @DecimalMin(value = "0.01", message = "Price must be greater than 0")
-    private BigDecimal farmerPrice;
-
-    private String imageUrl;
-    private String certificateUrl;
 }
