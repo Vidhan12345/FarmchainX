@@ -25,6 +25,9 @@ public class AuthService {
 
     @Autowired
     private RoleRepository roleRepository;
+    
+    @Autowired
+    private com.vidhan.FarmchainX.config.JwtUtils jwtUtils;
 
     /**
      * Register new user
@@ -91,12 +94,17 @@ public class AuthService {
             throw new RuntimeException("Error: Invalid username or password");
         }
 
+        // Generate JWT token
+        String jwtToken = jwtUtils.generateTokenFromUsername(user.getUsername());
+
         // Get roles
         List<String> roles = user.getRoles().stream()
                 .map(role -> role.getRoleName().name())
                 .collect(Collectors.toList());
 
         return new LoginResponse(
+                jwtToken,
+                "Bearer",
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),

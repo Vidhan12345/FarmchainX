@@ -7,6 +7,8 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class LoginResponse {
+    private String token;
+    private String type = "Bearer";
     private Long id;
     private String username;
     private String email;
